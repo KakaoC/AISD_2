@@ -111,6 +111,53 @@ complex<double> scan(int n)
 		delete[]str;
 	}
 }
+template<>
+complex<float> scan(int n)
+{
+	while (true)
+	{
+		char* str = new char[256];
+		std::cin.getline(str, 256);
+		if (test_complex(str))
+		{
+			char* tmp = str;
+			while (*tmp != ' ') tmp++;
+			tmp++;
+			complex<float> y(atof(str), atof(tmp));
+			delete[] str;
+			return y;
+		}
+		else puts("Wrong data");
+		delete[]str;
+	}
+}
+
+
+template <class Type>
+class matrix;
+
+template <class Type>
+Type scan2()
+{
+	if (typeid(Type) == typeid(int)) return scan<int>(1);
+	if (typeid(Type) == typeid(double)) return scan<double>(2);
+	if (typeid(Type) == typeid(float)) return scan<float>(2);
+}
+template<>
+complex<double> scan2()
+{
+	return scan<complex<double>>(3);
+}
+template<>
+complex<float> scan2()
+{
+	return scan<complex<float>>(3);
+}
+
+
+
+template <class Type>
+double determinant(const matrix<Type>& m, int N);
 
 template <class Type>
 class matrix
@@ -157,11 +204,7 @@ public:
 			{
 				Type _temp;
 				cout << "Input value of index [" << i + 1 << "][" << j + 1 << "]: ";
-				if (typeid(Type) == typeid(int)) _temp = scan<int>(1);
-				if (typeid(Type) == typeid(double)) _temp = scan<double>(2);
-				if (typeid(Type) == typeid(float)) _temp = scan<float>(2);
-				if (typeid(Type) == typeid(complex<double>)) _temp = scan<complex<double>>(3);
-				if (typeid(Type) == typeid(complex<float>)) _temp = scan<complex<float>>(3);
+				_temp = scan2<Type>();
 				data[i][j] = _temp;
 				cout << endl;
 			}
@@ -370,7 +413,7 @@ public:
 		return *this;
 	}
 
-	matrix operator*(const matrix& m)
+	matrix operator*(const matrix& m) const
 	{
 		matrix temp(*this);
 		temp *= m;
@@ -397,7 +440,6 @@ public:
 		return temp;
 	}
 	//оператор деления матрицы на скаляр;
-
 	matrix& operator/=(double n)
 	{
 		if (n == 0) throw "Division by zero";
@@ -410,7 +452,6 @@ public:
 		}
 		return *this;
 	}
-
 	matrix operator/(double n)
 	{
 		matrix temp(*this);
@@ -419,10 +460,10 @@ public:
 	}
 
 	//метод вычисления следа матрицы - сумма членов главной диагонали, при условии, что матрица - квадратичная
-	double trace()
+	Type trace()
 	{
 		if (rows != columns) throw "The matrix is not square";
-		double trace = 0;
+		Type trace = 0;
 		for (int i = 0, j = 0; i < rows; i++, j++)
 		{
 			trace += data[i][j];
@@ -451,57 +492,11 @@ public:
 			return true;
 		}
 	}
-
 	bool operator!=(const matrix& m) {
 		return !(*this == m);
 	}
 
-	friend double determinant(const matrix& m, int N) {
-		if (m.columns != m.rows) {
-			return 0;
-		}
-		else if (N == 1) {
-			return m.data[0][0];
-		}
-		else if (N == 2) {
-			return m.data[0][0] * m.data[1][1] - m.data[0][1] * m.data[1][0];
-		}
-		else if (N >= 3) {
-			double determ = 0;
-
-			for (int k = 0; k < N; k++) {
-
-				double** temp = new double* [N - 1];
-				for (int i = 0; i < N - 1; i++) {
-					temp[i] = new double[N - 1];
-				}
-
-				for (int i = 0; i < N; i++)
-				{
-					for (int j = 1; j < N; j++)
-					{
-						if (i > k)
-						{
-							temp[i - 1][j - 1] = m.data[i][j];
-						}
-						if (i < k)
-						{
-							temp[i][j - 1] = m.data[i][j];
-						}
-					}
-				}
-
-				determ += pow(-1, k + 2) * m.data[k][0] * determinant(matrix(temp, N - 1, N - 1), N - 1);
-
-				for (int i = 0; i < N - 1; i++)
-				{
-					delete[] temp[i];
-				}
-				delete[] temp;
-			}
-			return determ;
-		}
-	}
+	friend double determinant<>(const matrix<Type>& m, int N);
 
 	matrix& operator = (const matrix& m) {
 		for (int i = 0; i < rows; i++)
@@ -509,10 +504,10 @@ public:
 			delete[] data[i];
 		}
 		delete[] data;
-		data = new double* [m.rows];
+		data = new Type * [m.rows];
 		for (int i = 0; i < m.rows; ++i)
 		{
-			data[i] = new double[m.columns];
+			data[i] = new Type[m.columns];
 		}
 
 		rows = m.rows;
@@ -528,261 +523,604 @@ public:
 		return *this;
 	}
 
+	friend matrix<Type>& operator*= (double n, matrix<Type>& m)
+	{
+		for (int i = 0; i < m.get_rows(); i++)
+		{
+			for (int j = 0; j < m.get_columns(); j++)
+			{
+				m(i, j) *= n;
+			}
+		}
+		return m;
+	}
+
+	friend matrix<Type> operator* (double n, matrix<Type>& m)
+	{
+		matrix temp(m);
+		return n *= temp;
+	}
+
+	friend ostream& operator << (ostream& os, const matrix& m)
+	{
+		for (int i = 0; i < m.get_rows(); ++i)
+		{
+			for (int j = 0; j < m.get_columns(); ++j)
+			{
+				os << left << m(i, j) << '\t';
+			}
+			os << endl;
+		}
+		return os;
+	}
+
+	friend bool coplanarns(const matrix& a, const matrix& b, const matrix& c)
+	{
+		matrix final(a, b, c);
+		double  det = determinant(final, final.get_columns());
+		if (det == 0) return true;
+		else return false;
+	}
+
 };
 
-matrix& operator*= (double n, matrix& m)
+template <class Type>
+double determinant(const matrix<Type>& m, int N)
 {
-	for (int i = 0; i < m.get_rows(); i++)
-	{
-		for (int j = 0; j < m.get_columns(); j++)
-		{
-			m(i, j) *= n;
-		}
+	if (m.columns != m.rows) {
+		return 0;
 	}
-	return m;
-}
-
-matrix operator* (double n, matrix& m) {
-	matrix temp(m);
-	return n *= temp;
-}
-
-ostream& operator << (ostream& os, const matrix& m)
-{
-	for (int i = 0; i < m.get_rows(); ++i)
-	{
-		for (int j = 0; j < m.get_columns(); ++j)
-		{
-			os << left << m(i, j) << '\t';
-		}
-		os << endl;
+	else if (N == 1) {
+		return m.data[0][0];
 	}
-	return os;
-}
+	else if (N == 2) {
+		return m.data[0][0] * m.data[1][1] - m.data[0][1] * m.data[1][0];
+	}
+	else if (N >= 3) {
+		double determ = 0;
 
-bool coplanarns(const matrix& a, const matrix& b, const matrix& c)
+		for (int k = 0; k < N; k++) {
+
+			Type** temp = new Type * [N - 1];
+			for (int i = 0; i < N - 1; i++) {
+				temp[i] = new Type[N - 1];
+			}
+
+			for (int i = 0; i < N; i++)
+			{
+				for (int j = 1; j < N; j++)
+				{
+					if (i > k)
+					{
+						temp[i - 1][j - 1] = m.data[i][j];
+					}
+					if (i < k)
+					{
+						temp[i][j - 1] = m.data[i][j];
+					}
+				}
+			}
+
+			determ += pow(-1, k + 2) * m.data[k][0] * determinant(matrix<Type>(temp, N - 1, N - 1), N - 1);
+
+			for (int i = 0; i < N - 1; i++)
+			{
+				delete[] temp[i];
+			}
+			delete[] temp;
+		}
+		return determ;
+	}
+}
+template<>
+double determinant(const matrix<complex<double>>& m, int N)
 {
-	matrix final(a, b, c);
-	double  det = determinant(final, final.get_columns());
-	if (det == 0) return true;
-	else return false;
+	if (m.columns != m.rows) {
+		return 0;
+	}
+	else if (N == 1) {
+		return m.data[0][0].real();
+	}
+	else if (N == 2) {
+		return m.data[0][0].real() * m.data[1][1].real() - m.data[0][1].real() * m.data[1][0].real();
+	}
+	else if (N >= 3) {
+		double determ = 0;
+
+		for (int k = 0; k < N; k++) {
+
+			complex<double>** temp = new complex<double>*[N - 1];
+			for (int i = 0; i < N - 1; i++) {
+				temp[i] = new complex<double>[N - 1];
+			}
+
+			for (int i = 0; i < N; i++)
+			{
+				for (int j = 1; j < N; j++)
+				{
+					if (i > k)
+					{
+						temp[i - 1][j - 1] = m.data[i][j].real();
+					}
+					if (i < k)
+					{
+						temp[i][j - 1] = m.data[i][j].real();
+					}
+				}
+			}
+
+			determ += pow(-1, k + 2) * m.data[k][0].real() * determinant(matrix<complex<double>>(temp, N - 1, N - 1), N - 1);
+
+			for (int i = 0; i < N - 1; i++)
+			{
+				delete[] temp[i];
+			}
+			delete[] temp;
+		}
+		return determ;
+	}
 }
+template<>
+double determinant(const matrix<complex<float>>& m, int N)
+{
+	if (m.columns != m.rows) {
+		return 0;
+	}
+	else if (N == 1) {
+		return m.data[0][0].real();
+	}
+	else if (N == 2) {
+		return m.data[0][0].real() * m.data[1][1].real() - m.data[0][1].real() * m.data[1][0].real();
+	}
+	else if (N >= 3) {
+		double determ = 0;
 
+		for (int k = 0; k < N; k++) {
 
+			complex<float>** temp = new complex<float>*[N - 1];
+			for (int i = 0; i < N - 1; i++) {
+				temp[i] = new complex<float>[N - 1];
+			}
 
+			for (int i = 0; i < N; i++)
+			{
+				for (int j = 1; j < N; j++)
+				{
+					if (i > k)
+					{
+						temp[i - 1][j - 1] = m.data[i][j].real();
+					}
+					if (i < k)
+					{
+						temp[i][j - 1] = m.data[i][j].real();
+					}
+				}
+			}
+
+			determ += pow(-1, k + 2) * m.data[k][0].real() * determinant(matrix<complex<float>>(temp, N - 1, N - 1), N - 1);
+
+			for (int i = 0; i < N - 1; i++)
+			{
+				delete[] temp[i];
+			}
+			delete[] temp;
+		}
+		return determ;
+	}
+}
 
 int main()
 {
-	matrix a;
-	matrix b;
-	double n = 1;
+	std::cout << "1 - Work with int data" << std::endl;
+	std::cout << "2 - Work with double data" << std::endl;
+	std::cout << "3 - Work with complex<double> data" << std::endl;
 	while (true)
 	{
-		system("cls");
-		cout << "first matrix\n\n";
-		cout << a << endl;
-		cout << "second matrix\n\n";
-		cout << b << endl;
-		cout << "1 - Create matrix" << endl;
-		cout << "2 - Enter value by index" << endl;
-		cout << "3 - Matrix addition" << endl;
-		cout << "4 - Matrix subtraction" << endl;
-		cout << "5 - Matrix multiplication" << endl;
-		cout << "6 - Multiplication matrix by scalar" << endl;
-		cout << "7 - Division matrix by scalar" << endl;
-		cout << "8 - Matrix trace calculation" << endl;
-		cout << "9 - Task" << endl;
-		cout << "0 - Matrix comparison" << endl;
-		cout << "esc - Exit" << endl;
-		int z = getch();
-		int l = '3';
-		system("cls");
-		if (z == '1' || z == '2' || (z > '5' && z < '9'))
+		int zl = getch();
+		if (zl == '1')
 		{
-			cout << "1 - Work with first matrix" << endl;
-			cout << "2 - Work with second matrix" << endl;
-			while (l != '1' && l != '2') l = getch();
-			system("cls");
-		}
-		if (z == '6' || z == '7')
-		{
-			cout << "Enter  scalar value" << endl;
-			n = scan<double>(2);
-			system("cls");
-		}
-		if (z == '1')
-		{
-			int x = '3';
-			cout << "1 - Create random matrix" << endl;
-			cout << "2 - Create matrix manually" << endl;
-			while (x != '1' && x != '2') x = getch();
-			try
+			matrix<int> a;
+			matrix<int> b;
+			double n = 1;
+			while (true)
 			{
-				if (x == '1')
+				system("cls");
+				cout << "first matrix\n\n";
+				cout << a << endl;
+				cout << "second matrix\n\n";
+				cout << b << endl;
+				cout << "1 - Create matrix" << endl;
+				cout << "2 - Enter value by index" << endl;
+				cout << "3 - Matrix addition" << endl;
+				cout << "4 - Matrix subtraction" << endl;
+				cout << "5 - Matrix multiplication" << endl;
+				cout << "6 - Multiplication matrix by scalar" << endl;
+				cout << "7 - Division matrix by scalar" << endl;
+				cout << "8 - Matrix trace calculation" << endl;
+				cout << "9 - Task" << endl;
+				cout << "0 - Matrix comparison" << endl;
+				cout << "esc - Exit" << endl;
+				int z = getch();
+				int l = '3';
+				system("cls");
+				if (z == '1' || z == '2' || (z > '5' && z < '9'))
 				{
-					matrix d;
-					if (l == '1') a = d;
-					else b = d;
+					cout << "1 - Work with first matrix" << endl;
+					cout << "2 - Work with second matrix" << endl;
+					while (l != '1' && l != '2') l = getch();
+					system("cls");
 				}
-				else
+				if (z == '6' || z == '7')
 				{
-					int rows, columns;
-					cout << "Enter number of rows" << endl;
-					rows = scan<int>(1);
-					cout << "Enter number of columns" << endl;
-					columns = scan<int>(1);
-					matrix d(rows, columns);
-					if (l == '1') a = d;
-					else b = d;
+					cout << "Enter scalar value" << endl;
+					n = scan<double>(2);
+					system("cls");
+				}
+				if (z == '1')
+				{
+					try
+					{
+						int rows, columns;
+						cout << "Enter number of rows" << endl;
+						rows = scan<int>(1);
+						cout << "Enter number of columns" << endl;
+						columns = scan<int>(1);
+						matrix<int> d(rows, columns);
+						if (l == '1') a = d;
+						else b = d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+						if (getch()) z = 0;
+					}
+					system("cls");
+				}
+				if (z == '2')
+				{
+					int index_row, index_column;
+					int value;
+					cout << "Enter index_row" << endl;
+					index_row = scan<int>(1);
+					cout << "Enter index_column" << endl;
+					index_column = scan<int>(1);
+					cout << "Enter value" << endl;
+					value = scan<int>(1);
+					try
+					{
+						if (l == '1') a(index_row, index_column) = value;
+						else b(index_row, index_column) = value;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+						if (getch()) z = 0;
+					}
+					system("cls");
+				}
+				if (z == '3')
+				{
+					try
+					{
+						matrix<int> d = a + b;
+						cout << "Matrix addition" << endl;
+						cout << d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '4')
+				{
+					try
+					{
+						matrix<int> d = a - b;
+						cout << "Matrix subtraction" << endl;
+						cout << d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '5')
+				{
+					try
+					{
+						matrix<int> d = a * b;
+						cout << "Matrix multiplication" << endl;
+						cout << d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '6')
+				{
+					matrix<int> d;
+					matrix<int> f;
+					cout << "Multiplication matrix by scalar" << endl;
+					if (l == '1') d = a * n;
+					else d = b * n;
+					cout << d;
+					cout << "\nMultiplication scalar by matrix" << endl;
+					if (l == '1') f = n * a;
+					else f = n * b;
+					cout << f;
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '7')
+				{
+					try
+					{
+						matrix<int> d;
+						if (l == '1') d = a / n;
+						else d = b / n;
+						cout << "Division matrix by scalar" << endl;
+						cout << d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '8')
+				{
+					double trace_ = 0;
+					try
+					{
+						if (l == '1') trace_ = a.trace();
+						else trace_ = b.trace();
+						cout << "Matrix trace" << endl;
+						cout << trace_;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '9')
+				{
+					cout << "Create first vector" << endl;
+					matrix<int> a1(1, 3);
+					cout << "Create second vector" << endl;
+					matrix<int> a2(1, 3);
+					cout << "Create third vector" << endl;
+					matrix<int> a3(1, 3);
+					if (coplanarns(a1, a2, a3)) cout << "Vectors are coplanar";
+					else cout << "Vectors are not coplanar";
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '0')
+				{
+					cout << "Enter epsilon" << endl;
+					epsilon = scan<int>(1);
+					if (a == b) cout << "Matrices are the same";
+					if (a != b) cout << "Matrices are different";
+					if (getch()) z = 0;
+				}
+				if (z == 27)
+				{
+					return 0;
 				}
 			}
-			catch (const char* msg)
-			{
-				cout << msg << endl;
-				if (getch()) z = 0;
-			}
-			system("cls");
 		}
-		if (z == '2')
+
+		if (zl == '2')
 		{
-			int index_row, index_column;
-			double value;
-			cout << "Enter index_row" << endl;
-			index_row = scan<int>(1);
-			cout << "Enter index_column" << endl;
-			index_column = scan<int>(1);
-			cout << "Enter value" << endl;
-			value = scan<double>(2);
-			try
+			matrix<double> a;
+			matrix<double> b;
+			double n = 1;
+			while (true)
 			{
-				if (l == '1') a(index_row, index_column) = value;
-				else b(index_row, index_column) = value;
+				system("cls");
+				cout << "first matrix\n\n";
+				cout << a << endl;
+				cout << "second matrix\n\n";
+				cout << b << endl;
+				cout << "1 - Create matrix" << endl;
+				cout << "2 - Enter value by index" << endl;
+				cout << "3 - Matrix addition" << endl;
+				cout << "4 - Matrix subtraction" << endl;
+				cout << "5 - Matrix multiplication" << endl;
+				cout << "6 - Multiplication matrix by scalar" << endl;
+				cout << "7 - Division matrix by scalar" << endl;
+				cout << "8 - Matrix trace calculation" << endl;
+				cout << "9 - Task" << endl;
+				cout << "0 - Matrix comparison" << endl;
+				cout << "esc - Exit" << endl;
+				int z = getch();
+				int l = '3';
+				system("cls");
+				if (z == '1' || z == '2' || (z > '5' && z < '9'))
+				{
+					cout << "1 - Work with first matrix" << endl;
+					cout << "2 - Work with second matrix" << endl;
+					while (l != '1' && l != '2') l = getch();
+					system("cls");
+				}
+				if (z == '6' || z == '7')
+				{
+					cout << "Enter scalar value" << endl;
+					n = scan<double>(2);
+					system("cls");
+				}
+				if (z == '1')
+				{
+					try
+					{
+						int rows, columns;
+						cout << "Enter number of rows" << endl;
+						rows = scan<int>(1);
+						cout << "Enter number of columns" << endl;
+						columns = scan<int>(1);
+						matrix<double> d(rows, columns);
+						if (l == '1') a = d;
+						else b = d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+						if (getch()) z = 0;
+					}
+					system("cls");
+				}
+				if (z == '2')
+				{
+					int index_row, index_column;
+					double value;
+					cout << "Enter index_row" << endl;
+					index_row = scan<int>(1);
+					cout << "Enter index_column" << endl;
+					index_column = scan<int>(1);
+					cout << "Enter value" << endl;
+					value = scan<double>(2);
+					try
+					{
+						if (l == '1') a(index_row, index_column) = value;
+						else b(index_row, index_column) = value;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+						if (getch()) z = 0;
+					}
+					system("cls");
+				}
+				if (z == '3')
+				{
+					try
+					{
+						matrix<double> d = a + b;
+						cout << "Matrix addition" << endl;
+						cout << d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '4')
+				{
+					try
+					{
+						matrix<double> d = a - b;
+						cout << "Matrix subtraction" << endl;
+						cout << d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '5')
+				{
+					try
+					{
+						matrix<double> d = a * b;
+						cout << "Matrix multiplication" << endl;
+						cout << d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '6')
+				{
+					matrix<double> d;
+					matrix<double> f;
+					cout << "Multiplication matrix by scalar" << endl;
+					if (l == '1') d = a * n;
+					else d = b * n;
+					cout << d;
+					cout << "\nMultiplication scalar by matrix" << endl;
+					if (l == '1') f = n * a;
+					else f = n * b;
+					cout << f;
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '7')
+				{
+					try
+					{
+						matrix<double> d;
+						if (l == '1') d = a / n;
+						else d = b / n;
+						cout << "Division matrix by scalar" << endl;
+						cout << d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '8')
+				{
+					double trace_ = 0;
+					try
+					{
+						if (l == '1') trace_ = a.trace();
+						else trace_ = b.trace();
+						cout << "Matrix trace" << endl;
+						cout << trace_;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '9')
+				{
+					cout << "Create first vector" << endl;
+					matrix<double> a1(1, 3);
+					cout << "Create second vector" << endl;
+					matrix<double> a2(1, 3);
+					cout << "Create third vector" << endl;
+					matrix<double> a3(1, 3);
+					if (coplanarns(a1, a2, a3)) cout << "Vectors are coplanar";
+					else cout << "Vectors are not coplanar";
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '0')
+				{
+					cout << "Enter epsilon" << endl;
+					epsilon = scan<double>(2);
+					if (a == b) cout << "Matrices are the same";
+					if (a != b) cout << "Matrices are different";
+					if (getch()) z = 0;
+				}
+				if (z == 27)
+				{
+					return 0;
+				}
 			}
-			catch (const char* msg)
-			{
-				cout << msg << endl;
-				if (getch()) z = 0;
-			}
-			system("cls");
-		}
-		if (z == '3')
-		{
-			try
-			{
-				matrix d = a + b;
-				cout << "Matrix addition" << endl;
-				cout << d;
-			}
-			catch (const char* msg)
-			{
-				cout << msg << endl;
-			}
-			if (getch()) z = 0;
-			system("cls");
-		}
-		if (z == '4')
-		{
-			try
-			{
-				matrix d = a - b;
-				cout << "Matrix subtraction" << endl;
-				cout << d;
-			}
-			catch (const char* msg)
-			{
-				cout << msg << endl;
-			}
-			if (getch()) z = 0;
-			system("cls");
-		}
-		if (z == '5')
-		{
-			try
-			{
-				matrix d = a * b;
-				cout << "Matrix multiplication" << endl;
-				cout << d;
-			}
-			catch (const char* msg)
-			{
-				cout << msg << endl;
-			}
-			if (getch()) z = 0;
-			system("cls");
-		}
-		if (z == '6')
-		{
-			matrix d;
-			matrix f;
-			cout << "Multiplication matrix by scalar" << endl;
-			if (l == '1') d = a * n;
-			else d = b * n;
-			cout << d;
-			cout << "\nMultiplication scalar by matrix" << endl;
-			if (l == '1') f = n * a;
-			else f = n * b;
-			cout << f;
-			if (getch()) z = 0;
-			system("cls");
-		}
-		if (z == '7')
-		{
-			try
-			{
-				matrix d;
-				if (l == '1') d = a / n;
-				else d = b / n;
-				cout << "Division matrix by scalar" << endl;
-				cout << d;
-			}
-			catch (const char* msg)
-			{
-				cout << msg << endl;
-			}
-			if (getch()) z = 0;
-			system("cls");
-		}
-		if (z == '8')
-		{
-			double trace_ = 0;
-			try
-			{
-				if (l == '1') trace_ = a.trace();
-				else trace_ = b.trace();
-				cout << "Matrix trace" << endl;
-				cout << trace_;
-			}
-			catch (const char* msg)
-			{
-				cout << msg << endl;
-			}
-			if (getch()) z = 0;
-			system("cls");
-		}
-		if (z == '9')
-		{
-			cout << "Create first vector" << endl;
-			matrix a1(1, 3);
-			cout << "Create second vector" << endl;
-			matrix a2(1, 3);
-			cout << "Create third vector" << endl;
-			matrix a3(1, 3);
-			if (coplanarns(a1, a2, a3)) cout << "Vectors are coplanar";
-			else cout << "Vectors are not coplanar";
-			if (getch()) z = 0;
-			system("cls");
-		}
-		if (z == '0')
-		{
-			cout << "Enter epsilon" << endl;
-			epsilon = scan<double>(2);
-			if (a == b) cout << "Matrices are the same";
-			if (a != b) cout << "Matrices are different";
-			if (getch()) z = 0;
-		}
-		if (z == 27)
-		{
-			return 0;
 		}
 	}
 }
