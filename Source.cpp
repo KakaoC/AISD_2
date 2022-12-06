@@ -44,6 +44,31 @@ bool test_double(char* b)
 	return true;
 }
 
+bool test_complex(char* b)
+{
+	if (*b == '-') b++;
+	if (*b == 0 || *b == '.' || *b == ' ') return false;
+	if (*b == '0' && (*(b + 1) != ' ' && *(b + 1) != '.')) return false;
+	while (*b != 0 && *b != '.' && *b != ' ')
+	{
+		if (*b < '0' || *b > '9') return false;
+		b++;
+	}
+	if (*b == '.')
+	{
+		b++;
+		if (*b == 0) return false;
+		while (*b != 0 && *b != ' ')
+		{
+			if (*b < '0' || *b > '9') return false;
+			b++;
+		}
+	}
+	if (*b == 0) return false;
+	b++;
+	return test_double(b);
+}
+
 template <class Type>
 Type scan(int n)
 {
@@ -61,6 +86,26 @@ Type scan(int n)
 			if (n == 2) x = atof(str);
 			delete[] str;
 			return x;
+		}
+		else puts("Wrong data");
+		delete[]str;
+	}
+}
+template<>
+std::complex<double> scan(int n)
+{
+	while (true)
+	{
+		char* str = new char[256];
+		std::cin.getline(str, 256);
+		if (test_complex(str))
+		{
+			char* tmp = str;
+			while (*tmp != ' ') tmp++;
+			tmp++;
+			std::complex<double> y(atof(str), atof(tmp));
+			delete[] str;
+			return y;
 		}
 		else puts("Wrong data");
 		delete[]str;
@@ -100,19 +145,23 @@ public:
 		columns = columns_;
 		rows = rows_;
 
-		data = new double* [rows];
+		data = new Type * [rows];
 		for (int i = 0; i < rows; ++i)
 		{
-			data[i] = new double[columns];
+			data[i] = new Type[columns];
 		}
 
 		cout << "Input your values" << "\n";
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < columns; j++)
 			{
-				double _temp;
+				Type _temp;
 				cout << "Input value of index [" << i + 1 << "][" << j + 1 << "]: ";
-				_temp = scan<double>(2);
+				if (typeid(Type) == typeid(int)) _temp = scan<int>(1);
+				if (typeid(Type) == typeid(double)) _temp = scan<double>(2);
+				if (typeid(Type) == typeid(float)) _temp = scan<float>(2);
+				if (typeid(Type) == typeid(complex<double>)) _temp = scan<complex<double>>(3);
+				if (typeid(Type) == typeid(complex<float>)) _temp = scan<complex<float>>(3);
 				data[i][j] = _temp;
 				cout << endl;
 			}
