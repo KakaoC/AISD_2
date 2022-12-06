@@ -76,7 +76,7 @@ Type scan(int n)
 	while (true)
 	{
 		char* str = new char[256];
-		std::cin.getline(str, 256);
+		cin.getline(str, 256);
 		if (n == 1) i = test_int(str);
 		if (n == 2) i = test_double(str);
 		if (i)
@@ -92,7 +92,7 @@ Type scan(int n)
 	}
 }
 template<>
-std::complex<double> scan(int n)
+complex<double> scan(int n)
 {
 	while (true)
 	{
@@ -103,7 +103,7 @@ std::complex<double> scan(int n)
 			char* tmp = str;
 			while (*tmp != ' ') tmp++;
 			tmp++;
-			std::complex<double> y(atof(str), atof(tmp));
+			complex<double> y(atof(str), atof(tmp));
 			delete[] str;
 			return y;
 		}
@@ -170,10 +170,10 @@ public:
 
 	matrix(const matrix& m)
 	{
-		data = new double* [m.rows];
+		data = new Type * [m.rows];
 		for (int i = 0; i < m.rows; ++i)
 		{
-			data[i] = new double[m.columns];
+			data[i] = new Type[m.columns];
 		}
 
 		rows = m.rows;
@@ -189,17 +189,17 @@ public:
 
 	}
 
-	matrix(double** temp, int rows_, int columns_)
+	matrix(Type** temp, int rows_, int columns_)
 	{
 		if (rows_ < 1 or columns_ < 1) throw "Invalid matrix size";
 
 		rows = rows_;
 		columns = columns_;
 
-		data = new double* [rows];
+		data = new Type * [rows];
 		for (int i = 0; i < rows; ++i)
 		{
-			data[i] = new double[columns];
+			data[i] = new Type[columns];
 		}
 
 		for (int i = 0; i < rows; i++)
@@ -217,10 +217,10 @@ public:
 
 		rows = columns = 3;
 
-		data = new double* [rows];
+		data = new Type * [rows];
 		for (int i = 0; i < rows; i++)
 		{
-			data[i] = new double[columns];
+			data[i] = new Type[columns];
 		}
 
 		for (int i = 0; i < rows; i++)
@@ -254,7 +254,7 @@ public:
 	int get_columns() const { return columns; }
 
 	// оператор () для чтения/записи элемента матрицы по указанным индексам;
-	double& operator()(int i, int j) const
+	Type& operator()(int i, int j) const
 	{
 		if ((i < 0 or i >= rows) or (j < 0 or j >= columns)) throw "Invalid index";
 		return data[i][j];
@@ -264,12 +264,12 @@ public:
 	matrix& operator+=(const matrix& m)
 	{
 		if (rows != m.rows or columns != m.columns) throw "Size of matrix doesn't equal";
-		double** temp;
+		Type** temp;
 
-		temp = new double* [m.rows];
+		temp = new Type * [m.rows];
 		for (int i = 0; i < m.rows; ++i)
 		{
-			temp[i] = new double[m.columns];
+			temp[i] = new Type[m.columns];
 		}
 
 		for (int i = 0; i < rows; ++i)
@@ -300,12 +300,12 @@ public:
 	matrix& operator-=(const matrix& m)
 	{
 		if (rows != m.rows or columns != m.columns) throw "Size of matrix doesn't equal";
-		double** temp;
+		Type** temp;
 
-		temp = new double* [m.rows];
+		temp = new Type * [m.rows];
 		for (int i = 0; i < m.rows; ++i)
 		{
-			temp[i] = new double[m.columns];
+			temp[i] = new Type[m.columns];
 		}
 
 		for (int i = 0; i < rows; ++i)
@@ -338,12 +338,12 @@ public:
 	{
 		if (columns != m.rows) throw "Size of matrix doesn't equal";
 
-		double** temp;
+		Type** temp;
 
-		temp = new double* [rows];
+		temp = new Type * [rows];
 		for (int i = 0; i < rows; i++)
 		{
-			temp[i] = new double[m.columns];
+			temp[i] = new Type[m.columns];
 		}
 
 		for (int rows_ = 0; rows_ < rows; rows_++)
