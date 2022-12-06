@@ -908,7 +908,7 @@ int main()
 				if (z == '0')
 				{
 					cout << "Enter epsilon" << endl;
-					epsilon = scan<int>(1);
+					epsilon = scan<double>(2);
 					if (a == b) cout << "Matrices are the same";
 					if (a != b) cout << "Matrices are different";
 					if (getch()) z = 0;
@@ -1103,6 +1103,209 @@ int main()
 					matrix<double> a2(1, 3);
 					cout << "Create third vector" << endl;
 					matrix<double> a3(1, 3);
+					if (coplanarns(a1, a2, a3)) cout << "Vectors are coplanar";
+					else cout << "Vectors are not coplanar";
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '0')
+				{
+					cout << "Enter epsilon" << endl;
+					epsilon = scan<double>(2);
+					if (a == b) cout << "Matrices are the same";
+					if (a != b) cout << "Matrices are different";
+					if (getch()) z = 0;
+				}
+				if (z == 27)
+				{
+					return 0;
+				}
+			}
+		}
+
+		if (zl == '3')
+		{
+			matrix<complex<double>> a;
+			matrix<complex<double>> b;
+			double n = 1;
+			while (true)
+			{
+				system("cls");
+				cout << "first matrix\n\n";
+				cout << a << endl;
+				cout << "second matrix\n\n";
+				cout << b << endl;
+				cout << "1 - Create matrix" << endl;
+				cout << "2 - Enter value by index" << endl;
+				cout << "3 - Matrix addition" << endl;
+				cout << "4 - Matrix subtraction" << endl;
+				cout << "5 - Matrix multiplication" << endl;
+				cout << "6 - Multiplication matrix by scalar" << endl;
+				cout << "7 - Division matrix by scalar" << endl;
+				cout << "8 - Matrix trace calculation" << endl;
+				cout << "9 - Task" << endl;
+				cout << "0 - Matrix comparison" << endl;
+				cout << "esc - Exit" << endl;
+				int z = getch();
+				int l = '3';
+				system("cls");
+				if (z == '1' || z == '2' || (z > '5' && z < '9'))
+				{
+					cout << "1 - Work with first matrix" << endl;
+					cout << "2 - Work with second matrix" << endl;
+					while (l != '1' && l != '2') l = getch();
+					system("cls");
+				}
+				if (z == '6' || z == '7')
+				{
+					cout << "Enter scalar value" << endl;
+					n = scan<double>(2);
+					system("cls");
+				}
+				if (z == '1')
+				{
+					try
+					{
+						int rows, columns;
+						cout << "Enter number of rows" << endl;
+						rows = scan<int>(1);
+						cout << "Enter number of columns" << endl;
+						columns = scan<int>(1);
+						matrix<complex<double>> d(rows, columns);
+						if (l == '1') a = d;
+						else b = d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+						if (getch()) z = 0;
+					}
+					system("cls");
+				}
+				if (z == '2')
+				{
+					int index_row, index_column;
+					complex<double> value;
+					cout << "Enter index_row" << endl;
+					index_row = scan<int>(1);
+					cout << "Enter index_column" << endl;
+					index_column = scan<int>(1);
+					cout << "Enter value" << endl;
+					value = scan<complex<double>>(3);
+					try
+					{
+						if (l == '1') a(index_row, index_column) = value;
+						else b(index_row, index_column) = value;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+						if (getch()) z = 0;
+					}
+					system("cls");
+				}
+				if (z == '3')
+				{
+					try
+					{
+						matrix<complex<double>> d = a + b;
+						cout << "Matrix addition" << endl;
+						cout << d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '4')
+				{
+					try
+					{
+						matrix<complex<double>> d = a - b;
+						cout << "Matrix subtraction" << endl;
+						cout << d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '5')
+				{
+					try
+					{
+						matrix<complex<double>> d = a * b;
+						cout << "Matrix multiplication" << endl;
+						cout << d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '6')
+				{
+					matrix<complex<double>> d;
+					matrix<complex<double>> f;
+					cout << "Multiplication matrix by scalar" << endl;
+					if (l == '1') d = a * n;
+					else d = b * n;
+					cout << d;
+					cout << "\nMultiplication scalar by matrix" << endl;
+					if (l == '1') f = n * a;
+					else f = n * b;
+					cout << f;
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '7')
+				{
+					try
+					{
+						matrix<complex<double>> d;
+						if (l == '1') d = a / n;
+						else d = b / n;
+						cout << "Division matrix by scalar" << endl;
+						cout << d;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '8')
+				{
+					complex<double> trace_ = 0;
+					try
+					{
+						if (l == '1') trace_ = a.trace();
+						else trace_ = b.trace();
+						cout << "Matrix trace" << endl;
+						cout << trace_;
+					}
+					catch (const char* msg)
+					{
+						cout << msg << endl;
+					}
+					if (getch()) z = 0;
+					system("cls");
+				}
+				if (z == '9')
+				{
+					cout << "Create first vector" << endl;
+					matrix<complex<double>> a1(1, 3);
+					cout << "Create second vector" << endl;
+					matrix<complex<double>> a2(1, 3);
+					cout << "Create third vector" << endl;
+					matrix<complex<double>> a3(1, 3);
 					if (coplanarns(a1, a2, a3)) cout << "Vectors are coplanar";
 					else cout << "Vectors are not coplanar";
 					if (getch()) z = 0;
